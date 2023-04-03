@@ -46,7 +46,7 @@ function load_mailbox(mailbox) {
       
       // Create a row for each email
       const mail_row = document.createElement('div');
-      mail_row.className = 'row my-2';
+      mail_row.className = 'row my-2 mail_row';
 
       mail_row_event = document.createElement('div');
 
@@ -54,7 +54,7 @@ function load_mailbox(mailbox) {
       if (mailbox === 'sent') {
         mail_row_event.className = 'row col-12 mr-2 border rounded';
       } else {
-        mail_row_event.className = 'row col-11 mr-2 border rounded';
+        mail_row_event.className = 'row col-10 mr-2 border rounded';
       };
       
       mail_row_event.style.cursor = 'pointer';
@@ -80,45 +80,66 @@ function load_mailbox(mailbox) {
       mail_subject.innerHTML = `Subject: ${email.subject}`;
 
       const mail_time = document.createElement('div');
-      mail_time.className = 'col-3  p-2';
+      mail_time.className = 'col-2  pl-2';
       mail_time.innerHTML = `${email.timestamp}`;
 
       // Archive button
-      const archive = document.createElement('div');
-      archive.className = 'col-1 py-2';
+      // const archive = document.createElement('div');
+      // archive.className = 'col-1 py-2';
       const archive_button = document.createElement('button');
-      archive_button.className = 'btn btn-sm btn-outline-primary bg-light';
+      archive_button.className = 'col-2  btn btn-sm btn-outline-primary bg-light';
 
       // If it's inbox mail
       if (mailbox === 'inbox') {
+        // Create button in the row of mail
+        //archive_button.classList.add('archive_btn');
         archive_button.innerHTML = 'Archive';
-        archive_button.onclick = () => {
+
+        archive_button.onclick = (event) => {
           console.log(`${email.id} archived`);
+
+          // Once element is archived - remove it's parent from the inbox
+          const element = event.target.parentElement;
+          element.style.animationPlayState = 'running';
+          element.addEventListener('animationend', () => {
+            element.remove();
+          });
+
           fetch(`/emails/${email.id}`, {
             method: 'PUT',
             body: JSON.stringify({
                 archived: true
             })
           });
-          console.log(this);
-          load_mailbox('inbox');
         }
       } 
       else if (mailbox === 'archive') {
+        // Create button in the row of archived mail
+        //archive_button.classList.add('archive_btn');
         archive_button.innerHTML = 'Unarchive';
+
         archive_button.onclick = () => {
           console.log(`${email.id} unarchived`);
+
+          // Once element is archived - remove it from the inbox
+          const element = event.target.parentElement;
+          element.style.animationPlayState = 'running';
+          element.addEventListener('animationend', () => {
+            element.remove();
+          });
+          // element.parentElement.remove();
+
           fetch(`/emails/${email.id}`, {
             method: 'PUT',
             body: JSON.stringify({
                 archived: false
             })
           });
-          load_mailbox('inbox');
+          //load_mailbox('inbox');
         }
       }
       
-      archive.appendChild(archive_button);
+      //archive.appendChild(archive_button);
 
       mail_row_event.appendChild(mail_sender);
       mail_row_event.appendChild(mail_subject);
@@ -126,15 +147,13 @@ function load_mailbox(mailbox) {
       
       mail_row.appendChild(mail_row_event);
 
-      // Append archive button only in inbox mail
+      // Append archive button only in inbox and arvhived mail
       if (mailbox != 'sent'){
-        mail_row.appendChild(archive);
+        mail_row.appendChild(archive_button);
       }
 
       document.querySelector('#emails-view').append(mail_row);
     });
-
-    
 });
 }
 
