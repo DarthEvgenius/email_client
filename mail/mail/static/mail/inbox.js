@@ -158,7 +158,7 @@ function load_mailbox(mailbox) {
 }
 
 function process_form() {  
-  // Sendd a new email
+  // Send a new email
 
   // Get inputs form the form
   const recipients = document.querySelector('#compose-recipients').value;
@@ -209,13 +209,27 @@ function show_email(email_id) {
       email_div.classList.add('text-danger');
       email_div.innerHTML = `${email.error}`;
     } else {
-      // Clear the section
+
+      // Clear the page section
       email_div.innerHTML = '';
 
-      // Mail's subject
+      // Mail's subject and Re button => row
+      const mail_title = document.createElement('div');
+      mail_title.className = 'row';
+      // Re button
+      const re_btn = document.createElement('button');
+      re_btn.className = 'btn btn-sm btn-outline-primary';
+      re_btn.innerHTML = 'Reply';
+      re_btn.addEventListener('click', function () {
+        reply(email);
+      });
+      // Email subject
       const mail_subject = document.createElement('h2');
-      mail_subject.className = 'text-center';
+      mail_subject.className = 'col-10 text-center';
       mail_subject.innerHTML = email.subject;
+      // Make a row
+      mail_title.appendChild(re_btn);
+      mail_title.appendChild(mail_subject);
 
       // Mail's sender and time row
       const mail_sent = document.createElement('div');
@@ -243,7 +257,7 @@ function show_email(email_id) {
       mail_body.innerHTML = email.body;
 
       // Append and view all content
-      email_div.append(mail_subject);
+      email_div.append(mail_title);
       email_div.append(mail_sent);
       email_div.append(mail_to);
       email_div.append(mail_body);
@@ -268,4 +282,40 @@ function email_archived(email_id) {
         read: true
     })
   });
+}
+
+function reply(email) {
+  // Reply to the email
+
+  // Get data for pre-fill
+  // The sender becomes a recipient
+  const to = email.sender;
+
+  // Make a New Subject, check if "Re:" wa already in old subject
+  let re_subject = '';
+  // Separate the first 4 letters from the old subject
+  const subj_check = email.subject.slice(0, 4);
+  if (subj_check === 'Re: ') {
+    // If mail is already a reply - save the old subject
+    re_subject = `${email.subject}`;
+  } else {
+    // Add 'Re: ' if it's a first reply
+    re_subject = `Re: ${email.subject}`;
+  }
+  
+  const body = `On ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+
+  // Run compose_email
+  compose_email();
+
+  // Put data into the form
+
+  // Recipient fill
+  document.querySelector('#compose-recipients').value = to;
+
+  // Subject fill
+  document.querySelector('#compose-subject').value = re_subject;
+
+  // Body fill
+  document.querySelector('#compose-body').value = body;
 }
