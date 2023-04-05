@@ -84,8 +84,6 @@ function load_mailbox(mailbox) {
       mail_time.innerHTML = `${email.timestamp}`;
 
       // Archive button
-      // const archive = document.createElement('div');
-      // archive.className = 'col-1 py-2';
       const archive_button = document.createElement('button');
       archive_button.className = 'col-2  btn btn-sm btn-outline-primary bg-light';
 
@@ -104,18 +102,11 @@ function load_mailbox(mailbox) {
           element.addEventListener('animationend', () => {
             element.remove();
           });
-
-          fetch(`/emails/${email.id}`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                archived: true
-            })
-          });
+          email_archive(email.id);
         }
       } 
       else if (mailbox === 'archive') {
         // Create button in the row of archived mail
-        //archive_button.classList.add('archive_btn');
         archive_button.innerHTML = 'Unarchive';
 
         archive_button.onclick = () => {
@@ -127,15 +118,7 @@ function load_mailbox(mailbox) {
           element.addEventListener('animationend', () => {
             element.remove();
           });
-          // element.parentElement.remove();
-
-          fetch(`/emails/${email.id}`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                archived: false
-            })
-          });
-          //load_mailbox('inbox');
+          email_unarchive(email.id);
         }
       }
       
@@ -218,10 +201,25 @@ function show_email(email_id) {
       mail_title.className = 'row';
       // Re button
       const re_btn = document.createElement('button');
-      re_btn.className = 'btn btn-sm btn-outline-primary';
+      re_btn.className = 'btn btn-sm btn-outline-primary mr-2';
       re_btn.innerHTML = 'Reply';
       re_btn.addEventListener('click', function () {
         reply(email);
+      });
+      // Archive button
+      const archive_button = document.createElement('button');
+      archive_button.className = 'btn btn-sm btn-outline-primary bg-light';
+      archive_button.innerHTML = email.archived ? 'Unarchive' : 'Archive';
+      archive_button.addEventListener('click', () => {
+        fetch(`/emails/${email_id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            // Reverse the .archived state
+              archived: !email.archived
+          })
+          // Below do not need ; if we gonna continue with .then
+        })
+        .then(() => {load_mailbox('inbox')})
       });
       // Email subject
       const mail_subject = document.createElement('h2');
@@ -229,6 +227,7 @@ function show_email(email_id) {
       mail_subject.innerHTML = email.subject;
       // Make a row
       mail_title.appendChild(re_btn);
+      mail_title.appendChild(archive_button);
       mail_title.appendChild(mail_subject);
 
       // Mail's sender and time row
@@ -273,13 +272,24 @@ function show_email(email_id) {
   });
 }
 
-function email_archived(email_id) {
-  // Match email as archived/not archived
+function email_archive(email_id) {
+  // Match email as archived
 
   fetch(`/emails/${email_id}`, {
     method: 'PUT',
     body: JSON.stringify({
-        read: true
+        archived: true
+    })
+  });
+}
+
+function email_unarchive(email_id) {
+  // Match email as not archived
+
+  fetch(`/emails/${email_id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        archived: false
     })
   });
 }
